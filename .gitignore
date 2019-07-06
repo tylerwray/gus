@@ -16,3 +16,7 @@
 
 # Environment variable files
 .env
+
+# Binaries
+gus
+main
