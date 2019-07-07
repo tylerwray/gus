@@ -26,3 +26,14 @@ var userType = graphql.NewObject(
 		},
 	},
 )
+
+var tokenType = graphql.NewObject(
+	graphql.ObjectConfig{
+		Name: "Token",
+		Fields: graphql.Fields{
+			"token": &graphql.Field{
+				Type: graphql.String,
+			},
+		},
+	},
+)

@@ -5,18 +5,10 @@ import (
 	"strings"
 
 	"github.com/graphql-go/graphql"
+	"github.com/tylerwray/gus/auth"
 	"github.com/tylerwray/gus/database"
 	"github.com/tylerwray/gus/plaid"
 )
-
-type user struct {
-	Username string `json:"username"`
-}
-
-type exchange struct {
-	ItemID      string `json:"itemId"`
-	AccessToken string `json:"accessToken"`
-}
 
 type resolver struct {
 	db *sql.DB
@@ -26,7 +18,16 @@ func newResolvers(db *sql.DB) *resolver {
 	return &resolver{db}
 }
 
+type exchange struct {
+	ItemID      string `json:"itemId"`
+	AccessToken string `json:"accessToken"`
+}
+
 func (r *resolver) createAccessToken(p graphql.ResolveParams) (interface{}, error) {
+	if err := auth.ValidateToken(p.Context.Value(auth.TokenKey).(string)); err != nil {
+		return nil, err
+	}
+
 	publicToken := p.Args["publicToken"]
 
 	client, err := plaid.New()
@@ -44,7 +45,15 @@ func (r *resolver) createAccessToken(p graphql.ResolveParams) (interface{}, erro
 	return exchange{ItemID: res.ItemID, AccessToken: res.AccessToken}, nil
 }
 
+type user struct {
+	Username string `json:"username"`
+}
+
 func (r *resolver) createUser(p graphql.ResolveParams) (interface{}, error) {
+	if err := auth.ValidateToken(p.Context.Value(auth.TokenKey).(string)); err != nil {
+		return nil, err
+	}
+
 	// TODO: Extract this into a `CreateUser` service
 	username := strings.ToLower(p.Args["username"].(string))
 	password, err := database.GenerateHash(p.Args["password"].(string))

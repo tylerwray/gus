@@ -1,12 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/graphql-go/handler"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
+	"github.com/tylerwray/gus/auth"
 	"github.com/tylerwray/gus/database"
 	"github.com/tylerwray/gus/graphql"
 )
@@ -41,8 +44,12 @@ func main() {
 	})
 
 	mux := http.NewServeMux()
-	mux.Handle("/graphql", gqlHandler)
 
-	log.Print("Server is running on port 8080")
-	http.ListenAndServe(":8080", cors.Default().Handler(mux))
+	mux.Handle("/api/v1/login", auth.LoginHandler(db))
+	mux.Handle("/graphql", auth.TokenMiddleware(gqlHandler))
+
+	addr := fmt.Sprintf("%s:%s", os.Getenv("HOST"), os.Getenv("PORT"))
+
+	log.Printf("Server is running on %s", addr)
+	http.ListenAndServe(addr, cors.Default().Handler(mux))
 }
