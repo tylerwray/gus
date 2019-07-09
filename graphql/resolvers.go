@@ -1,48 +1,37 @@
 package graphql
 
 import (
-	"database/sql"
-	"strings"
-
 	"github.com/graphql-go/graphql"
-	"github.com/tylerwray/gus/auth"
-	"github.com/tylerwray/gus/database"
-	"github.com/tylerwray/gus/plaid"
+	"github.com/tylerwray/gus/api"
 )
 
 type resolver struct {
-	db *sql.DB
+	s *api.Service
 }
 
-func newResolvers(db *sql.DB) *resolver {
-	return &resolver{db}
+func newResolvers(s *api.Service) *resolver {
+	return &resolver{s}
 }
 
-type exchange struct {
+type userBankAccount struct {
 	ItemID      string `json:"itemId"`
 	AccessToken string `json:"accessToken"`
 }
 
-func (r *resolver) createAccessToken(p graphql.ResolveParams) (interface{}, error) {
-	if err := auth.ValidateToken(p.Context.Value(auth.TokenKey).(string)); err != nil {
+func (r *resolver) linkBankAccount(p graphql.ResolveParams) (interface{}, error) {
+	if err := r.s.ValidateAuthToken(p.Context.Value(r.s.AuthTokenKey).(string)); err != nil {
 		return nil, err
 	}
 
 	publicToken := p.Args["publicToken"]
 
-	client, err := plaid.New()
+	res, err := r.s.Plaid.ExchangePublicToken(publicToken.(string))
 
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := client.ExchangePublicToken(publicToken.(string))
-
-	if err != nil {
-		return nil, err
-	}
-
-	return exchange{ItemID: res.ItemID, AccessToken: res.AccessToken}, nil
+	return userBankAccount{ItemID: res.ItemID, AccessToken: res.AccessToken}, nil
 }
 
 type user struct {
@@ -50,19 +39,14 @@ type user struct {
 }
 
 func (r *resolver) createUser(p graphql.ResolveParams) (interface{}, error) {
-	if err := auth.ValidateToken(p.Context.Value(auth.TokenKey).(string)); err != nil {
+	if err := r.s.ValidateAuthToken(p.Context.Value(r.s.AuthTokenKey).(string)); err != nil {
 		return nil, err
 	}
 
-	// TODO: Extract this into a `CreateUser` service
-	username := strings.ToLower(p.Args["username"].(string))
-	password, err := database.GenerateHash(p.Args["password"].(string))
+	username := p.Args["username"].(string)
+	password := p.Args["password"].(string)
 
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err := r.db.Exec("INSERT INTO users (username, password) VALUES ($1, $2)", username, password); err != nil {
+	if err := r.s.CreateUser(username, password); err != nil {
 		return nil, err
 	}
 

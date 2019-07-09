@@ -19,5 +19,5 @@ If you need to create migrations, install migration cli `brew install golang-mig
 Then run:
 
 ```
-migrate create -ext sql -dir migrations <NAME>
+make gen.migration NAME=some_migration_name
 ```

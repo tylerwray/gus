@@ -1,14 +1,14 @@
 package graphql
 
 import (
-	"database/sql"
+	"log"
 
 	"github.com/graphql-go/graphql"
+	"github.com/tylerwray/gus/api"
 )
 
-// NewSchema creates a schema graphql object
-func NewSchema(db *sql.DB) (graphql.Schema, error) {
-	resolvers := newResolvers(db)
+func newSchema(s *api.Service) graphql.Schema {
+	resolvers := newResolvers(s)
 
 	var queryType = graphql.NewObject(graphql.ObjectConfig{
 		Name: "Query",
@@ -22,7 +22,7 @@ func NewSchema(db *sql.DB) (graphql.Schema, error) {
 		},
 	})
 
-	createAccessToken := graphql.Field{
+	var linkBankAccount = graphql.Field{
 		Type: exchangeType,
 		Args: graphql.FieldConfigArgument{
 			"publicToken": &graphql.ArgumentConfig{
@@ -30,11 +30,11 @@ func NewSchema(db *sql.DB) (graphql.Schema, error) {
 				Type:        graphql.String,
 			},
 		},
-		Description: "Exchange a plaid public token for an access token and item id",
-		Resolve:     resolvers.createAccessToken,
+		Description: "Link a bank account by exchanging a plaid public token for an access token and item id",
+		Resolve:     resolvers.linkBankAccount,
 	}
 
-	createUser := graphql.Field{
+	var createUser = graphql.Field{
 		Type: userType,
 		Args: graphql.FieldConfigArgument{
 			"username": &graphql.ArgumentConfig{
@@ -53,15 +53,21 @@ func NewSchema(db *sql.DB) (graphql.Schema, error) {
 	var mutationType = graphql.NewObject(graphql.ObjectConfig{
 		Name: "Mutation",
 		Fields: graphql.Fields{
-			"createAccessToken": &createAccessToken,
-			"createUser":        &createUser,
+			"linkBankAccount": &linkBankAccount,
+			"createUser":      &createUser,
 		},
 	})
 
-	return graphql.NewSchema(
+	schema, err := graphql.NewSchema(
 		graphql.SchemaConfig{
 			Query:    queryType,
 			Mutation: mutationType,
 		},
 	)
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return schema
 }
