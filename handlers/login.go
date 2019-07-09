@@ -37,7 +37,7 @@ func Login(s *api.Service) http.HandlerFunc {
 		}
 
 		if err := s.ComparePasswordHash(user.Password, body.Password); err != nil {
-			w.WriteHeader(401)
+			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(`{"error": "Incorrect login information"}`))
 			return
 		}
@@ -45,7 +45,7 @@ func Login(s *api.Service) http.HandlerFunc {
 		token, err := s.GenerateAuthToken()
 
 		if err != nil {
-			w.WriteHeader(401)
+			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(`{"error": "Could not generate token"}`))
 			return
 		}

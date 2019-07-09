@@ -11,5 +11,8 @@ db.drop:
 db.seed:
 	psql ${DATABASE_URL} -a -f migrations/seeds.sql
 
+db.create:
+	psql postgres://postgres:postgres@localhost:5432?sslmode=disable -c 'CREATE DATABASE gus_dev'
+
 gen.migration: 
 	@migrate create --ext sql --dir migrations ${NAME}

@@ -8,11 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/golang-migrate/migrate"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres" // Migration driver
-	_ "github.com/golang-migrate/migrate/v4/source/file"       // Migration file source
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq" // postgres driver
 	"github.com/rs/cors"
 	"github.com/tylerwray/gus/api"
 	"github.com/tylerwray/gus/graphql"
@@ -57,21 +53,4 @@ func authTokenMiddleware(s *api.Service, h http.Handler) http.Handler {
 
 		h.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), s.AuthTokenKey, token)))
 	})
-}
-
-func migrateDB() error {
-	m, err := migrate.New(
-		"file://migrations",
-		os.Getenv("DATABASE_URL"),
-	)
-
-	if err != nil {
-		return err
-	}
-
-	if err := m.Up(); err != migrate.ErrNoChange {
-		return err
-	}
-
-	return nil
 }
