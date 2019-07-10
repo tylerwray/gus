@@ -1,4 +1,4 @@
-package api
+package app
 
 import (
 	"database/sql"
@@ -26,7 +26,7 @@ func NewService() *Service {
 	}
 
 	// Check that our connection is good
-	if err = db.Ping(); err != nil {
+	if err := db.Ping(); err != nil {
 		log.Panic(err)
 	}
 

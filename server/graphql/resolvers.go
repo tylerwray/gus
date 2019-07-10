@@ -2,14 +2,14 @@ package graphql
 
 import (
 	"github.com/graphql-go/graphql"
-	"github.com/tylerwray/gus/api"
+	"github.com/tylerwray/gus/app"
 )
 
 type resolver struct {
-	s *api.Service
+	s *app.Service
 }
 
-func newResolvers(s *api.Service) *resolver {
+func newResolvers(s *app.Service) *resolver {
 	return &resolver{s}
 }
 

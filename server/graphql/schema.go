@@ -4,10 +4,10 @@ import (
 	"log"
 
 	"github.com/graphql-go/graphql"
-	"github.com/tylerwray/gus/api"
+	"github.com/tylerwray/gus/app"
 )
 
-func newSchema(s *api.Service) graphql.Schema {
+func newSchema(s *app.Service) graphql.Schema {
 	resolvers := newResolvers(s)
 
 	var queryType = graphql.NewObject(graphql.ObjectConfig{

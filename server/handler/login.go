@@ -1,11 +1,11 @@
-package handlers
+package handler
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
 
-	"github.com/tylerwray/gus/api"
+	"github.com/tylerwray/gus/app"
 )
 
 type loginBody struct {
@@ -13,8 +13,7 @@ type loginBody struct {
 	Password string `json:"password"`
 }
 
-// Login authorizes a user and sends them a token
-func Login(s *api.Service) http.HandlerFunc {
+func login(s *app.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
