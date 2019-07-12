@@ -16,3 +16,6 @@ db.create:
 
 gen.migration: 
 	@migrate create --ext sql --dir migrations ${NAME}
+
+test:
+	go test ./...
