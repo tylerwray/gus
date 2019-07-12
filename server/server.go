@@ -1,28 +1,39 @@
 package server
 
 import (
-	"fmt"
-	"log"
+	"context"
 	"net/http"
-	"os"
 
+	"github.com/graphql-go/handler"
 	"github.com/rs/cors"
 	"github.com/tylerwray/gus/app"
-	"github.com/tylerwray/gus/server/handler"
 )
 
-// Start the server
-func Start() {
-	s := app.NewService()
+type userIDContextKeyType struct{}
 
-	h := handler.New(s)
+var userIDContextKey *userIDContextKeyType
 
-	addr := fmt.Sprintf("%s:%s", os.Getenv("HOST"), os.Getenv("PORT"))
+func getUserID(ctx context.Context) string {
+	return ctx.Value(userIDContextKey).(string)
+}
 
-	log.Printf("Server is running on %s", addr)
+// NewHandler creates a new http.Handler for the server
+func NewHandler(s *app.Service) http.Handler {
+	userIDContextKey = &userIDContextKeyType{}
 
-	if err := http.ListenAndServe(addr, cors.Default().Handler(h)); err != nil {
-		log.Println("Server could not be started, error:")
-		log.Panic(err)
-	}
+	schema := newSchema(s)
+
+	gqlHandler := handler.New(&handler.Config{
+		Schema:   &schema,
+		Pretty:   true,
+		GraphiQL: true,
+	})
+
+	handler := http.NewServeMux()
+
+	handler.HandleFunc("/api/v1/login", login(s))
+	handler.HandleFunc("/api/v1/sign-up", signUp(s))
+	handler.Handle("/graphql", authTokenMiddleware(s, gqlHandler))
+
+	return cors.Default().Handler(handler)
 }

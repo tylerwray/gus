@@ -5,16 +5,14 @@ import (
 	"log"
 	"os"
 
+	_ "github.com/lib/pq" // Postgres driver
 	"github.com/plaid/plaid-go/plaid"
 )
 
-type authTokenKey struct{}
-
 // Service ...
 type Service struct {
-	db           *sql.DB
-	Plaid        *plaid.Client
-	AuthTokenKey *authTokenKey
+	db    *sql.DB
+	plaid *plaid.Client
 }
 
 // NewService creates a new service instance
@@ -46,6 +44,5 @@ func NewService() *Service {
 	return &Service{
 		db,
 		plaidClient,
-		&authTokenKey{},
 	}
 }

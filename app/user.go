@@ -19,6 +19,7 @@ func (s *Service) CreateUser(username, password string) error {
 
 // User type
 type User struct {
+	ID string `json:"id"`
 	Username string `json:"username"`
 	Password string `json:"password"`
 }

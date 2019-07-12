@@ -1,4 +1,4 @@
-package graphql
+package server
 
 import (
 	"github.com/graphql-go/graphql"
@@ -19,19 +19,16 @@ type userBankAccount struct {
 }
 
 func (r *resolver) linkBankAccount(p graphql.ResolveParams) (interface{}, error) {
-	if err := r.s.ValidateAuthToken(p.Context.Value(r.s.AuthTokenKey).(string)); err != nil {
-		return nil, err
-	}
-
+	var userID = "12"
 	publicToken := p.Args["publicToken"]
 
-	res, err := r.s.Plaid.ExchangePublicToken(publicToken.(string))
+	err := r.s.AddBankAccount(userID, publicToken.(string))
 
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	return userBankAccount{ItemID: res.ItemID, AccessToken: res.AccessToken}, nil
+	return true, nil
 }
 
 type user struct {
@@ -39,10 +36,6 @@ type user struct {
 }
 
 func (r *resolver) createUser(p graphql.ResolveParams) (interface{}, error) {
-	if err := r.s.ValidateAuthToken(p.Context.Value(r.s.AuthTokenKey).(string)); err != nil {
-		return nil, err
-	}
-
 	username := p.Args["username"].(string)
 	password := p.Args["password"].(string)
 
